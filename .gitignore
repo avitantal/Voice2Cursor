@@ -1,0 +1,29 @@
+# Environment
+.env
+
+# Offset state
+offset.txt
+
+# Logs
+logs/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.spec
+
+# PyInstaller output
+*.exe
+
+# IDE
+.vscode/
+.idea/
+
+# Temp task XML
+_task.xml

@@ -1,0 +1,45 @@
+import threading
+import pystray
+from PIL import Image, ImageDraw
+
+def _make_icon(color: str) -> Image.Image:
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([4, 4, 60, 60], fill=color)
+    return img
+
+ICON_GREEN = _make_icon("#22c55e")
+ICON_GRAY  = _make_icon("#6b7280")
+
+_tray: pystray.Icon | None = None
+
+def _build_tray(on_exit):
+    global _tray
+    _tray = pystray.Icon(
+        "Voice2Cursor",
+        ICON_GREEN,
+        "Voice2Cursor — פעיל",
+        menu=pystray.Menu(
+            pystray.MenuItem("Voice2Cursor — פעיל", None, enabled=False),
+            pystray.MenuItem("יציאה", lambda: on_exit()),
+        ),
+    )
+    _tray.run()
+
+def start(on_exit):
+    t = threading.Thread(target=_build_tray, args=(on_exit,), daemon=True)
+    t.start()
+
+def set_error():
+    if _tray:
+        _tray.icon = ICON_GRAY
+        _tray.title = "Voice2Cursor — שגיאה"
+
+def set_ok():
+    if _tray:
+        _tray.icon = ICON_GREEN
+        _tray.title = "Voice2Cursor — פעיל"
+
+def stop():
+    if _tray:
+        _tray.stop()
