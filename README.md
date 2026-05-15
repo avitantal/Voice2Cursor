@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.2-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.3-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -116,6 +116,10 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.3 — 2026-05-15
+- Tray menu: added "שלח Enter אוטומטי" toggle (auto-send Enter after paste)
+- build.bat: now creates a ZIP file for easy distribution after each build
 
 ### v1.0.2 — 2026-05-15
 - Tray icon tooltip now shows version number (e.g. "Voice2Cursor v1.0.2 — פעיל")

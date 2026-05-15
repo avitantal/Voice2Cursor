@@ -1,4 +1,13 @@
 import sys
+import traceback
+from pathlib import Path
+
+# Catch any crash before logging is set up and write to a fixed path
+def _early_except(exc_type, exc_value, exc_tb):
+    crash = Path(sys.executable).parent / "crash.txt" if getattr(sys, "frozen", False) else Path(__file__).parent / "crash.txt"
+    crash.write_text("".join(traceback.format_exception(exc_type, exc_value, exc_tb)))
+sys.excepthook = _early_except
+
 import time
 import logging
 import logging.handlers

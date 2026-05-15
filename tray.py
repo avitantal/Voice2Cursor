@@ -20,6 +20,14 @@ ICON_GREEN = _make_icon("#22c55e")
 ICON_GRAY  = _make_icon("#6b7280")
 
 _tray: pystray.Icon | None = None
+_auto_enter: bool = False
+
+def is_auto_enter() -> bool:
+    return _auto_enter
+
+def _toggle_auto_enter(icon, item):
+    global _auto_enter
+    _auto_enter = not _auto_enter
 
 def _build_tray(on_exit):
     global _tray
@@ -29,6 +37,7 @@ def _build_tray(on_exit):
         f"Voice2Cursor v{VERSION} — פעיל",
         menu=pystray.Menu(
             pystray.MenuItem(f"Voice2Cursor v{VERSION} — פעיל", None, enabled=False),
+            pystray.MenuItem("שלח Enter אוטומטי", _toggle_auto_enter, checked=lambda item: _auto_enter),
             pystray.MenuItem("יציאה", lambda: on_exit()),
         ),
     )
