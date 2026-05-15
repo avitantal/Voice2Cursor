@@ -4,6 +4,7 @@ import win32clipboard
 import win32con
 import win32api
 from security import is_safe_target
+import tray
 
 logger = logging.getLogger(__name__)
 
@@ -34,3 +35,8 @@ def _do_paste(text: str):
     time.sleep(0.05)
     win32api.keybd_event(ord('V'), 0, win32con.KEYEVENTF_KEYUP, 0)
     win32api.keybd_event(win32con.VK_CONTROL, 0, win32con.KEYEVENTF_KEYUP, 0)
+
+    if tray.is_auto_enter():
+        time.sleep(0.05)
+        win32api.keybd_event(win32con.VK_RETURN, 0, 0, 0)
+        win32api.keybd_event(win32con.VK_RETURN, 0, win32con.KEYEVENTF_KEYUP, 0)
