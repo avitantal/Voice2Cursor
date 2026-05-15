@@ -81,7 +81,9 @@ def on_settings():
     if saved:
         logger.info("Settings saved — restarting")
         tray.stop()
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        import subprocess
+        subprocess.Popen([sys.executable] + sys.argv)
+        sys.exit(0)
 
 def main():
     logger.info("Voice2Cursor starting up")

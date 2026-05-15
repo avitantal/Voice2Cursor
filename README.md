@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.5-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.6-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -116,6 +116,10 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.6 — 2026-05-15
+- Settings window: fixed "שמור והפעל מחדש" button not responding on frozen EXE — replaced `os.execv` with `subprocess.Popen` + `sys.exit`
+- Settings window: fixed UI updates from validation thread (thread-safe via `root.after`)
 
 ### v1.0.5 — 2026-05-15
 - Tray menu: added "⚙ הגדרות" — opens settings window with current values pre-filled, restarts bot after save

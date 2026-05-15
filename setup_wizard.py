@@ -143,9 +143,11 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
                 result["ok"] = True
                 root.after(0, root.destroy)
             else:
-                status_var.set("✗  " + msg)
-                status_lbl.config(fg=RED)
-                btn.config(state="normal", text=btn_label)
+                def _show_error():
+                    status_var.set("✗  " + msg)
+                    status_lbl.config(fg=RED)
+                    btn.config(state="normal", text=btn_label)
+                root.after(0, _show_error)
 
         threading.Thread(target=do_validate, daemon=True).start()
 
