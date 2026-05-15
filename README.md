@@ -2,6 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
+[![Version](https://img.shields.io/badge/version-v1.0.0-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -32,7 +33,8 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 - **Safe injection** — blocks paste into terminals, password managers, registry editors, and task manager
 - **Stale message protection** — discards messages older than 30 seconds (replay prevention)
 - **System tray** — green/gray dot shows live connection status; right-click to exit
-- **Auto-start** — optional Windows Task Scheduler registration, no admin rights required
+- **EXE build** — ships as a standalone executable via PyInstaller, no Python required
+- **Auto-start** — registers to launch at Windows login, no admin rights required
 - **Rotating logs** — up to 3 × 1 MB log files under `logs/`
 
 ---
@@ -40,21 +42,63 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 ## Requirements
 
 - Windows 10 / 11
-- Python 3.10+
+- Python 3.10+ *(only needed to build the EXE — not needed to run it)*
 - A Telegram bot token ([create one via @BotFather](https://t.me/BotFather))
 - Your personal Telegram chat ID ([get it via @userinfobot](https://t.me/userinfobot))
 
 ---
 
-## Installation
+## Quick Start
+
+### 1. Configure
 
 ```bash
-git clone https://github.com/your-username/Voice2Cursor.git
-cd Voice2Cursor
-pip install -r requirements.txt
+copy .env.example .env
 ```
 
-### Dependencies
+Edit `.env`:
+
+```ini
+BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
+ALLOWED_CHAT_ID=987654321
+```
+
+**How to find your chat ID:**
+1. Send any message to your new bot
+2. Open `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
+3. Copy the value of `result[0].message.chat.id`
+
+### 2. Build EXE
+
+```bat
+build.bat
+```
+
+Installs dependencies, builds `dist\Voice2Cursor\Voice2Cursor.exe`, and copies `.env` automatically.
+
+### 3. Register auto-start
+
+```bash
+python setup_task_scheduler.py
+```
+
+Tries Task Scheduler first (30-second delay after login). Falls back to the user Startup folder — no admin rights needed either way.
+
+```bash
+# To unregister
+python setup_task_scheduler.py --remove
+```
+
+### Run without building (development)
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+---
+
+## Dependencies
 
 | Package | Purpose |
 |---------|---------|
@@ -63,67 +107,6 @@ pip install -r requirements.txt
 | `pystray` | Windows system tray icon |
 | `Pillow` | Tray icon rendering |
 | `python-dotenv` | `.env` config loading |
-
----
-
-## Configuration
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```bash
-copy .env.example .env
-```
-
-```ini
-# .env
-BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
-ALLOWED_CHAT_ID=987654321
-```
-
-| Variable | Description |
-|----------|-------------|
-| `BOT_TOKEN` | Token from @BotFather |
-| `ALLOWED_CHAT_ID` | Your personal chat ID — only this sender can trigger pastes |
-
-**How to find your chat ID:**
-1. Send any message to your new bot
-2. Open `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
-3. Copy the value of `result[0].message.chat.id`
-
----
-
-## Build EXE (recommended)
-
-Build a standalone Windows executable — no Python required on the target machine:
-
-```bat
-build.bat
-```
-
-The output is placed in `dist\Voice2Cursor\Voice2Cursor.exe`. Copy your `.env` file into that folder before running.
-
-### Run without building
-
-```bash
-python main.py
-```
-
-A tray icon appears in the system notification area (bottom-right). Green = connected, Gray = network error.
-
-## Auto-start at Login
-
-After building, register Voice2Cursor to launch automatically on Windows login:
-
-```bash
-python setup_task_scheduler.py
-```
-
-This tries Task Scheduler first (supports a 30-second delay). If that requires elevation, it falls back to placing a shortcut in your user Startup folder — no admin rights needed either way.
-
-```bash
-# To unregister
-python setup_task_scheduler.py --remove
-```
 
 ---
 
@@ -142,10 +125,8 @@ Paste is refused if the foreground window title matches any of the following (ca
 | Registry Editor (regedit) |
 | Task Manager |
 
-If a paste is blocked, the event is logged and no clipboard modification occurs.
-
 ### Stale message guard
-Messages older than 30 seconds are discarded. This prevents replayed or queued messages from injecting text after the bot restarts.
+Messages older than 30 seconds are discarded, preventing replayed or queued messages from injecting text after a restart.
 
 ---
 
@@ -158,7 +139,10 @@ Voice2Cursor/
 ├── security.py              # Chat ID whitelist + blocked-window check
 ├── injector.py              # Clipboard write + Ctrl+V keystroke
 ├── tray.py                  # System tray icon and menu
-├── setup_task_scheduler.py  # Registers / removes Windows startup task
+├── setup_task_scheduler.py  # Registers / removes auto-start
+├── Voice2Cursor.spec        # PyInstaller build spec
+├── build.bat                # One-click build script
+├── VERSION                  # Current version number
 ├── requirements.txt
 ├── .env.example
 └── logs/
@@ -176,15 +160,29 @@ Voice2Cursor/
 
 **Tray icon is gray**
 - No network connectivity to Telegram API
-- Check your internet connection; the bot will reconnect automatically with exponential backoff
+- The bot reconnects automatically with exponential backoff
 
 **Bot doesn't start**
 - Confirm `BOT_TOKEN` is correct in `.env`
 - Run `python main.py` manually to see startup errors in the console
 
-**Task Scheduler registration fails**
-- Make sure you're running the script as your normal user (not elevated/admin)
+**Auto-start registration fails**
+- Make sure you're running as your normal user (not elevated/admin)
 - Check that `pythonw.exe` exists in your Python installation directory
+
+---
+
+## Changelog
+
+### v1.0.0 — 2026-05-15
+- Initial release
+- Telegram long-polling bot with single-user whitelist
+- Clipboard injection via Ctrl+V into the active window
+- Blocked-window safety list (terminals, password managers, etc.)
+- System tray icon with green/gray status indicator
+- PyInstaller EXE build (`build.bat`)
+- Auto-start via Task Scheduler / Startup folder (`setup_task_scheduler.py`)
+- Rotating log files
 
 ---
 
