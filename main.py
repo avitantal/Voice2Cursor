@@ -9,11 +9,12 @@ def _early_except(exc_type, exc_value, exc_tb):
 sys.excepthook = _early_except
 
 # First-run setup: open GUI wizard if .env is missing or incomplete
-from setup_wizard import needs_setup, run_wizard
+from setup_wizard import needs_setup, run_wizard, run_settings
 if needs_setup():
     if not run_wizard():
         sys.exit(0)
 
+import os
 import time
 import logging
 import logging.handlers
@@ -75,9 +76,16 @@ def on_exit():
     tray.stop()
     sys.exit(0)
 
+def on_settings():
+    saved = run_settings()
+    if saved:
+        logger.info("Settings saved — restarting")
+        tray.stop()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+
 def main():
     logger.info("Voice2Cursor starting up")
-    tray.start(on_exit)
+    tray.start(on_exit, on_settings)
 
     offset = load_offset()
     retry_delay = RETRY_DELAY

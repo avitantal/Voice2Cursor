@@ -1,10 +1,11 @@
 """
-First-run setup wizard — opens when .env is missing or incomplete.
+Setup wizard — first-run and settings.
 Asks for BOT_TOKEN and ALLOWED_CHAT_ID, validates against Telegram, saves .env.
 """
 import sys
+import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 from pathlib import Path
 import requests
 import threading
@@ -22,6 +23,19 @@ def needs_setup() -> bool:
     has_token = any(line.startswith("BOT_TOKEN=") and len(line.split("=", 1)[1].strip()) > 10 for line in text.splitlines())
     has_chat  = any(line.startswith("ALLOWED_CHAT_ID=") and line.split("=", 1)[1].strip().lstrip("-").isdigit() for line in text.splitlines())
     return not (has_token and has_chat)
+
+
+def _load_current() -> tuple[str, str]:
+    """Return (token, chat_id) from existing .env, or empty strings."""
+    if not ENV_PATH.exists():
+        return "", ""
+    token, chat_id = "", ""
+    for line in ENV_PATH.read_text().splitlines():
+        if line.startswith("BOT_TOKEN="):
+            token = line.split("=", 1)[1].strip()
+        elif line.startswith("ALLOWED_CHAT_ID="):
+            chat_id = line.split("=", 1)[1].strip()
+    return token, chat_id
 
 
 def _validate(token: str, chat_id: str) -> tuple[bool, str]:
@@ -46,18 +60,20 @@ def _save(token: str, chat_id: str):
     ENV_PATH.write_text(f"BOT_TOKEN={token.strip()}\nALLOWED_CHAT_ID={chat_id.strip()}\n", encoding="utf-8")
 
 
-def run_wizard():
+def _open_window(title: str, subtitle: str, current_token: str, current_chat: str,
+                 btn_label: str, on_close_without_save) -> bool:
     root = tk.Tk()
-    root.title("Voice2Cursor — הגדרה ראשונה")
+    root.title(title)
     root.resizable(False, False)
     root.configure(bg="#1e1e2e")
 
-    # ── center window ──────────────────────────────────────────────────────
     root.update_idletasks()
-    w, h = 480, 420
+    w, h = 480, 440
     x = (root.winfo_screenwidth()  - w) // 2
     y = (root.winfo_screenheight() - h) // 2
     root.geometry(f"{w}x{h}+{x}+{y}")
+    root.lift()
+    root.focus_force()
 
     BG     = "#1e1e2e"
     CARD   = "#2a2a3e"
@@ -65,7 +81,6 @@ def run_wizard():
     FG     = "#e2e8f0"
     MUTED  = "#94a3b8"
     RED    = "#f87171"
-    GREEN  = "#4ade80"
 
     style = ttk.Style()
     style.theme_use("clam")
@@ -77,30 +92,29 @@ def run_wizard():
         return tk.Label(parent, text=text, bg=BG, fg=color,
                         font=("Segoe UI", size), anchor=anchor, **kw)
 
-    # ── header ─────────────────────────────────────────────────────────────
+    # Header
     header = tk.Frame(root, bg=ACCENT, height=56)
     header.pack(fill="x")
     tk.Label(header, text="⚙  Voice2Cursor", bg=ACCENT, fg="white",
              font=("Segoe UI", 14, "bold"), anchor="w").pack(side="left", padx=16, pady=12)
 
-    # ── body ───────────────────────────────────────────────────────────────
+    # Body
     body = tk.Frame(root, bg=BG, padx=28, pady=20)
     body.pack(fill="both", expand=True)
 
-    label(body, "ברוך הבא! בואו נגדיר את הבוט שלך.", size=12).pack(anchor="w", pady=(0, 16))
+    label(body, subtitle, size=12).pack(anchor="w", pady=(0, 16))
 
     # Bot Token
     label(body, "🔑  Bot Token", size=10, color=MUTED).pack(anchor="w")
-    token_var = tk.StringVar()
+    token_var = tk.StringVar(value=current_token)
     token_entry = ttk.Entry(body, textvariable=token_var, width=52, show="•", font=("Consolas", 10))
     token_entry.pack(fill="x", ipady=4, pady=(2, 2))
     label(body, "  קבל מ-@BotFather  →  /newbot", size=9, color=MUTED).pack(anchor="w", pady=(0, 14))
 
     # Chat ID
     label(body, "🆔  Chat ID שלך", size=10, color=MUTED).pack(anchor="w")
-    chat_var = tk.StringVar()
-    chat_entry = ttk.Entry(body, textvariable=chat_var, width=52, font=("Consolas", 10))
-    chat_entry.pack(fill="x", ipady=4, pady=(2, 2))
+    chat_var = tk.StringVar(value=current_chat)
+    ttk.Entry(body, textvariable=chat_var, width=52, font=("Consolas", 10)).pack(fill="x", ipady=4, pady=(2, 2))
     label(body, "  שלח הודעה לבוט, פתח:  api.telegram.org/bot<TOKEN>/getUpdates", size=9, color=MUTED).pack(anchor="w", pady=(0, 16))
 
     # Status
@@ -109,7 +123,7 @@ def run_wizard():
                           font=("Segoe UI", 9), anchor="w", wraplength=420)
     status_lbl.pack(anchor="w", pady=(0, 12))
 
-    # Button
+    # Buttons
     btn_frame = tk.Frame(body, bg=BG)
     btn_frame.pack(fill="x")
 
@@ -131,26 +145,50 @@ def run_wizard():
             else:
                 status_var.set("✗  " + msg)
                 status_lbl.config(fg=RED)
-                btn.config(state="normal", text="שמור והתחל ▶")
+                btn.config(state="normal", text=btn_label)
 
         threading.Thread(target=do_validate, daemon=True).start()
 
     btn = tk.Button(
-        btn_frame, text="שמור והתחל ▶",
+        btn_frame, text=btn_label,
         bg=ACCENT, fg="white", activebackground="#6d28d9", activeforeground="white",
         font=("Segoe UI", 11, "bold"), relief="flat", cursor="hand2",
         padx=20, pady=8, command=on_save,
     )
     btn.pack(side="right")
 
-    # Show token in plain text on hover
-    def show_token(e):  token_entry.config(show="")
-    def hide_token(e):  token_entry.config(show="•")
+    def show_token(e): token_entry.config(show="")
+    def hide_token(e): token_entry.config(show="•")
     token_entry.bind("<Enter>", show_token)
     token_entry.bind("<Leave>", hide_token)
 
     token_entry.focus_set()
-    root.protocol("WM_DELETE_WINDOW", lambda: sys.exit(0))
+    root.protocol("WM_DELETE_WINDOW", on_close_without_save)
     root.mainloop()
 
     return result["ok"]
+
+
+def run_wizard() -> bool:
+    """First-run wizard — exit app if closed without saving."""
+    return _open_window(
+        title="Voice2Cursor — הגדרה ראשונה",
+        subtitle="ברוך הבא! בואו נגדיר את הבוט שלך.",
+        current_token="",
+        current_chat="",
+        btn_label="שמור והתחל ▶",
+        on_close_without_save=lambda: sys.exit(0),
+    )
+
+
+def run_settings() -> bool:
+    """Settings window — pre-filled with current values, restart app if saved."""
+    token, chat_id = _load_current()
+    return _open_window(
+        title="Voice2Cursor — הגדרות",
+        subtitle="עדכן את פרטי הבוט שלך.",
+        current_token=token,
+        current_chat=chat_id,
+        btn_label="שמור והפעל מחדש ▶",
+        on_close_without_save=lambda: None,
+    )

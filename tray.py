@@ -29,7 +29,7 @@ def _toggle_auto_enter(icon, item):
     global _auto_enter
     _auto_enter = not _auto_enter
 
-def _build_tray(on_exit):
+def _build_tray(on_exit, on_settings):
     global _tray
     _tray = pystray.Icon(
         "Voice2Cursor",
@@ -37,14 +37,17 @@ def _build_tray(on_exit):
         f"Voice2Cursor v{VERSION} — פעיל",
         menu=pystray.Menu(
             pystray.MenuItem(f"Voice2Cursor v{VERSION} — פעיל", None, enabled=False),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem("שלח Enter אוטומטי", _toggle_auto_enter, checked=lambda item: _auto_enter),
+            pystray.MenuItem("⚙ הגדרות", lambda: on_settings()),
+            pystray.Menu.SEPARATOR,
             pystray.MenuItem("יציאה", lambda: on_exit()),
         ),
     )
     _tray.run()
 
-def start(on_exit):
-    t = threading.Thread(target=_build_tray, args=(on_exit,), daemon=True)
+def start(on_exit, on_settings):
+    t = threading.Thread(target=_build_tray, args=(on_exit, on_settings), daemon=True)
     t.start()
 
 def set_error():
