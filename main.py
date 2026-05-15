@@ -8,12 +8,17 @@ def _early_except(exc_type, exc_value, exc_tb):
     crash.write_text("".join(traceback.format_exception(exc_type, exc_value, exc_tb)))
 sys.excepthook = _early_except
 
+# First-run setup: open GUI wizard if .env is missing or incomplete
+from setup_wizard import needs_setup, run_wizard
+if needs_setup():
+    if not run_wizard():
+        sys.exit(0)
+
 import time
 import logging
 import logging.handlers
 import threading
 import requests
-from pathlib import Path
 from config import (
     BOT_TOKEN, POLL_TIMEOUT, RETRY_DELAY, MAX_RETRY_DELAY,
     MESSAGE_MAX_AGE, OFFSET_FILE, LOG_DIR,
