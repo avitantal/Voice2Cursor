@@ -14,16 +14,15 @@ __pycache__/
 *.pyd
 .Python
 *.egg-info/
+
+# PyInstaller — keep Voice2Cursor.spec (source), exclude build output
 dist/
 build/
-*.spec
-
-# PyInstaller output
 *.exe
 
 # IDE
 .vscode/
 .idea/
 
-# Temp task XML
+# Temp files
 _task.xml

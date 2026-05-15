@@ -92,9 +92,17 @@ ALLOWED_CHAT_ID=987654321
 
 ---
 
-## Usage
+## Build EXE (recommended)
 
-### Run manually
+Build a standalone Windows executable — no Python required on the target machine:
+
+```bat
+build.bat
+```
+
+The output is placed in `dist\Voice2Cursor\Voice2Cursor.exe`. Copy your `.env` file into that folder before running.
+
+### Run without building
 
 ```bash
 python main.py
@@ -102,16 +110,18 @@ python main.py
 
 A tray icon appears in the system notification area (bottom-right). Green = connected, Gray = network error.
 
-### Register as a startup task (recommended)
+## Auto-start at Login
+
+After building, register Voice2Cursor to launch automatically on Windows login:
 
 ```bash
 python setup_task_scheduler.py
 ```
 
-Voice2Cursor will launch automatically 30 seconds after every login, running silently in the background.
+This tries Task Scheduler first (supports a 30-second delay). If that requires elevation, it falls back to placing a shortcut in your user Startup folder — no admin rights needed either way.
 
 ```bash
-# To remove the startup task
+# To unregister
 python setup_task_scheduler.py --remove
 ```
 

@@ -1,8 +1,13 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent / ".env")
+# When frozen by PyInstaller, __file__ points to the temp extraction dir.
+# sys.executable always points to the actual EXE (or python.exe when not frozen).
+BASE_DIR = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+
+load_dotenv(BASE_DIR / ".env")
 
 def _require(key: str) -> str:
     val = os.getenv(key, "").strip()
@@ -18,5 +23,5 @@ RETRY_DELAY = 5            # seconds — wait after network error
 MAX_RETRY_DELAY = 60       # seconds — cap for exponential backoff
 MESSAGE_MAX_AGE = 30       # seconds — discard older messages (stale replay protection)
 PASTE_DELAY = 0            # seconds — countdown before paste
-OFFSET_FILE = Path(__file__).parent / "offset.txt"
-LOG_DIR = Path(__file__).parent / "logs"
+OFFSET_FILE = BASE_DIR / "offset.txt"
+LOG_DIR     = BASE_DIR / "logs"
