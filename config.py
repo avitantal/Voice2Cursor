@@ -20,7 +20,7 @@ ALLOWED_CHAT_ID = int(_require("ALLOWED_CHAT_ID"))
 
 POLL_TIMEOUT = 30          # seconds — long-polling hold time
 RETRY_DELAY = 5            # seconds — wait after network error
-MAX_RETRY_DELAY = 60       # seconds — cap for exponential backoff
+MAX_RETRY_DELAY = 15       # seconds — cap for exponential backoff
 MESSAGE_MAX_AGE = 30       # seconds — discard older messages (stale replay protection)
 PASTE_DELAY = 0            # seconds — countdown before paste
 OFFSET_FILE = BASE_DIR / "offset.txt"
