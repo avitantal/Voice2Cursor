@@ -14,6 +14,15 @@ if %errorlevel% neq 0 (
 )
 
 echo.
+echo [Voice2Cursor] Copying .env to dist folder...
+if exist .env (
+    copy /Y .env dist\Voice2Cursor\.env > nul
+    echo .env copied OK.
+) else (
+    echo WARNING: .env not found. Copy it manually to dist\Voice2Cursor\.env before running.
+)
+
+echo.
 echo Build complete! EXE is in: dist\Voice2Cursor\Voice2Cursor.exe
 echo.
 echo To register as Windows startup task, run:
