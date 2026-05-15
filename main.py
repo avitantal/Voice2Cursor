@@ -74,16 +74,18 @@ def save_offset(offset: int):
 def on_exit():
     logger.info("Exiting via tray")
     tray.stop()
-    sys.exit(0)
+    os._exit(0)
 
 def on_settings():
-    saved = run_settings()
-    if saved:
-        logger.info("Settings saved — restarting")
-        tray.stop()
-        import subprocess
-        subprocess.Popen([sys.executable] + sys.argv)
-        sys.exit(0)
+    def _run():
+        saved = run_settings()
+        if saved:
+            logger.info("Settings saved — restarting")
+            tray.stop()
+            import subprocess
+            subprocess.Popen([sys.executable] + sys.argv)
+            os._exit(0)
+    threading.Thread(target=_run, daemon=True).start()
 
 def main():
     logger.info("Voice2Cursor starting up")

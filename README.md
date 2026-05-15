@@ -118,8 +118,11 @@ Voice2Cursor/
 ## Changelog
 
 ### v1.0.6 — 2026-05-15
-- Settings window: fixed "שמור והפעל מחדש" button not responding on frozen EXE — replaced `os.execv` with `subprocess.Popen` + `sys.exit`
+- Tray "יציאה": fixed exit not closing the process — `sys.exit` in pystray callback only kills that thread; replaced with `os._exit`
+- Settings window: fixed window freezing — settings now open in a dedicated thread so the Win32 message pump is not blocked
+- Settings window: fixed "שמור והפעל מחדש" not restarting on frozen EXE — replaced `os.execv` with `subprocess.Popen` + `os._exit`
 - Settings window: fixed UI updates from validation thread (thread-safe via `root.after`)
+- Settings window: added note that Chat ID cannot be auto-verified — user must confirm it manually
 
 ### v1.0.5 — 2026-05-15
 - Tray menu: added "⚙ הגדרות" — opens settings window with current values pre-filled, restarts bot after save

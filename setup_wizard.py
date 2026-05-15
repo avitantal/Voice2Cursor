@@ -115,7 +115,8 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     label(body, "🆔  Chat ID שלך", size=10, color=MUTED).pack(anchor="w")
     chat_var = tk.StringVar(value=current_chat)
     ttk.Entry(body, textvariable=chat_var, width=52, font=("Consolas", 10)).pack(fill="x", ipady=4, pady=(2, 2))
-    label(body, "  שלח הודעה לבוט, פתח:  api.telegram.org/bot<TOKEN>/getUpdates", size=9, color=MUTED).pack(anchor="w", pady=(0, 16))
+    label(body, "  שלח הודעה לבוט, פתח:  api.telegram.org/bot<TOKEN>/getUpdates", size=9, color=MUTED).pack(anchor="w", pady=(0, 4))
+    label(body, "  ⚠  ה-Chat ID לא מאומת אוטומטית — ודא שהוא נכון לפני שמירה", size=9, color="#f59e0b").pack(anchor="w", pady=(0, 12))
 
     # Status
     status_var = tk.StringVar()
