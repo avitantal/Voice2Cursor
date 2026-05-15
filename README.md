@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.6-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.9-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -116,6 +116,19 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.9 — 2026-05-15
+- Setup wizard: auto-detect Chat ID via Telegram `getUpdates` long-polling — user sends any message to the bot and the field fills automatically
+- Setup wizard: right-click paste/copy menu on token & chat fields, with PowerShell `Get-Clipboard` fallback for tkinter clipboard bugs
+- Tray tooltip & menu header now show the bot username (`@bot_name`) alongside the version
+- Settings restart: clear stale `BOT_TOKEN` / `ALLOWED_CHAT_ID` env vars and pass `override=True` to `load_dotenv` so switching bots picks up new credentials
+- `get_updates`: distinguish network errors (`None`) from empty results; backoff only on real failures
+- Wizard saves: reset `offset.txt` to `0` so a newly configured bot does not skip messages
+
+### v1.0.7 — 2026-05-15
+- Settings window: fixed Ctrl+V paste into token field — tkinter now runs on a persistent dedicated thread (Win32 keyboard routing broken when creating a new thread per open)
+- Settings window: replaced hover-reveal on token field with an explicit "הצג / הסתר" toggle button
+- Settings restart: fixed `subprocess.Popen` receiving EXE path twice — now uses `[sys.executable]` only
 
 ### v1.0.6 — 2026-05-15
 - Tray "יציאה": fixed exit not closing the process — `sys.exit` in pystray callback only kills that thread; replaced with `os._exit`

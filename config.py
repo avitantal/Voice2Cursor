@@ -7,7 +7,9 @@ from dotenv import load_dotenv
 # sys.executable always points to the actual EXE (or python.exe when not frozen).
 BASE_DIR = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 
-load_dotenv(BASE_DIR / ".env")
+# Settings are written to .env. Prefer that file over inherited env vars so
+# switching bots in the tray settings cannot restart with stale credentials.
+load_dotenv(BASE_DIR / ".env", override=True)
 
 def _require(key: str) -> str:
     val = os.getenv(key, "").strip()

@@ -15,9 +15,11 @@ if needs_setup():
         sys.exit(0)
 
 import os
+import queue
 import time
 import logging
 import logging.handlers
+import subprocess
 import threading
 import requests
 from config import (
@@ -41,7 +43,25 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def get_updates(offset: int) -> list:
+# Persistent GUI thread — all tkinter windows must run on the same thread
+# to keep Win32 keyboard routing intact.
+_gui_queue: queue.Queue = queue.Queue()
+
+def _gui_worker():
+    while True:
+        task = _gui_queue.get()
+        if task is None:
+            return
+        try:
+            task()
+        except Exception:
+            pass
+
+threading.Thread(target=_gui_worker, daemon=True, name="gui-worker").start()
+
+
+def get_updates(offset: int):
+    """Return list of updates, or None on network error."""
     try:
         r = requests.get(
             f"{API}/getUpdates",
@@ -54,7 +74,7 @@ def get_updates(offset: int) -> list:
     except requests.exceptions.RequestException as e:
         logger.warning("Network error: %s", e)
         tray.set_error()
-        return []
+        return None
 
 def send_reply(chat_id: int, text: str):
     try:
@@ -82,14 +102,32 @@ def on_settings():
         if saved:
             logger.info("Settings saved — restarting")
             tray.stop()
-            import subprocess
-            subprocess.Popen([sys.executable] + sys.argv)
+            env = os.environ.copy()
+            env.pop("BOT_TOKEN", None)
+            env.pop("ALLOWED_CHAT_ID", None)
+            if getattr(sys, "frozen", False):
+                subprocess.Popen([sys.executable], env=env)
+            else:
+                subprocess.Popen([sys.executable, *sys.argv], env=env)
             os._exit(0)
-    threading.Thread(target=_run, daemon=True).start()
+    _gui_queue.put(_run)
+
+def _fetch_bot_name() -> str:
+    try:
+        r = requests.get(f"{API}/getMe", timeout=8)
+        data = r.json()
+        if not r.ok or not data.get("ok"):
+            return ""
+        bot = data.get("result", {})
+        username = bot.get("username", "").strip()
+        return f"@{username}" if username else bot.get("first_name", "").strip()
+    except Exception:
+        return ""
 
 def main():
     logger.info("Voice2Cursor starting up")
-    tray.start(on_exit, on_settings)
+    bot_name = _fetch_bot_name()
+    tray.start(on_exit, on_settings, bot_name=bot_name)
 
     offset = load_offset()
     retry_delay = RETRY_DELAY
@@ -97,9 +135,10 @@ def main():
     while True:
         updates = get_updates(offset)
 
-        if not updates:
-            retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
+        if updates is None:
+            # Network error — backoff and retry
             time.sleep(retry_delay)
+            retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
             continue
 
         retry_delay = RETRY_DELAY

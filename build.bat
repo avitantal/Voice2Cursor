@@ -15,12 +15,12 @@ if %errorlevel% neq 0 (
 
 echo.
 echo [Voice2Cursor] Copying config files...
+copy /Y VERSION dist\Voice2Cursor\VERSION > nul
 if exist .env (
     copy /Y .env dist\Voice2Cursor\.env > nul
 ) else (
     echo WARNING: .env not found. Copy it manually to dist\Voice2Cursor\.env before running.
 )
-copy /Y VERSION dist\Voice2Cursor\VERSION > nul
 echo Done.
 
 echo.
