@@ -11,10 +11,6 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 
 ## How It Works
 
-1. You send a text message (or a voice message transcribed by Telegram) to your private bot
-2. Voice2Cursor receives it via long-polling
-3. The text is pasted into whatever window is currently in focus — as if you typed it
-
 ```
 [Phone mic] → Telegram voice message → transcription → Telegram Bot API
                                                               ↓
@@ -33,22 +29,13 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 - **Safe injection** — blocks paste into terminals, password managers, registry editors, and task manager
 - **Stale message protection** — discards messages older than 30 seconds (replay prevention)
 - **System tray** — green/gray dot shows live connection status; right-click to exit
-- **EXE build** — ships as a standalone executable via PyInstaller, no Python required
+- **EXE build** — ships as a standalone executable, no Python required to run
 - **Auto-start** — registers to launch at Windows login, no admin rights required
 - **Rotating logs** — up to 3 × 1 MB log files under `logs/`
 
 ---
 
-## Requirements
-
-- Windows 10 / 11
-- Python 3.10+ *(only needed to build the EXE — not needed to run it)*
-- A Telegram bot token ([create one via @BotFather](https://t.me/BotFather))
-- Your personal Telegram chat ID ([get it via @userinfobot](https://t.me/userinfobot))
-
----
-
-## Quick Start
+## Setup
 
 ### 1. Configure
 
@@ -59,22 +46,21 @@ copy .env.example .env
 Edit `.env`:
 
 ```ini
-BOT_TOKEN=123456789:ABCdefGHIjklMNOpqrSTUvwxYZ
-ALLOWED_CHAT_ID=987654321
+BOT_TOKEN=your_bot_token
+ALLOWED_CHAT_ID=your_chat_id
 ```
 
-**How to find your chat ID:**
-1. Send any message to your new bot
-2. Open `https://api.telegram.org/bot<YOUR_TOKEN>/getUpdates` in a browser
-3. Copy the value of `result[0].message.chat.id`
+**How to find your values:**
+- **BOT_TOKEN** — chat with [@BotFather](https://t.me/BotFather) on Telegram → `/newbot`
+- **ALLOWED_CHAT_ID** — send a message to your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `result[0].message.chat.id`
 
-### 2. Build EXE
+### 2. Build & install
 
 ```bat
 build.bat
 ```
 
-Installs dependencies, builds `dist\Voice2Cursor\Voice2Cursor.exe`, and copies `.env` automatically.
+That's it. The script installs all dependencies, builds the EXE, copies `.env` automatically, and tells you how to register auto-start.
 
 ### 3. Register auto-start
 
@@ -82,51 +68,21 @@ Installs dependencies, builds `dist\Voice2Cursor\Voice2Cursor.exe`, and copies `
 python setup_task_scheduler.py
 ```
 
-Tries Task Scheduler first (30-second delay after login). Falls back to the user Startup folder — no admin rights needed either way.
+Tries Task Scheduler first (30-second delay after login). Falls back to the user Startup folder if elevation is needed — no admin rights required either way.
 
 ```bash
-# To unregister
-python setup_task_scheduler.py --remove
+python setup_task_scheduler.py --remove   # unregister
 ```
-
-### Run without building (development)
-
-```bash
-pip install -r requirements.txt
-python main.py
-```
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `requests` | Telegram Bot API long-polling |
-| `pywin32` | Clipboard access + keyboard simulation |
-| `pystray` | Windows system tray icon |
-| `Pillow` | Tray icon rendering |
-| `python-dotenv` | `.env` config loading |
 
 ---
 
 ## Security
 
-### Authorization
-Only messages from `ALLOWED_CHAT_ID` are processed. All other senders receive no response and are logged as unauthorized.
-
-### Blocked windows
-Paste is refused if the foreground window title matches any of the following (case-insensitive):
-
-| Blocked |
-|---------|
-| cmd.exe / PowerShell / Terminal |
-| KeePass / Bitwarden / 1Password / LastPass |
-| Registry Editor (regedit) |
-| Task Manager |
-
-### Stale message guard
-Messages older than 30 seconds are discarded, preventing replayed or queued messages from injecting text after a restart.
+| Mechanism | Detail |
+|-----------|--------|
+| Sender whitelist | Only `ALLOWED_CHAT_ID` can trigger a paste |
+| Blocked windows | Terminals, KeePass, Bitwarden, 1Password, LastPass, Registry Editor, Task Manager |
+| Stale guard | Messages older than 30 s are discarded |
 
 ---
 
@@ -144,31 +100,18 @@ Voice2Cursor/
 ├── build.bat                # One-click build script
 ├── VERSION                  # Current version number
 ├── requirements.txt
-├── .env.example
-└── logs/
-    └── voice2cursor.log     # Rotating log (3 × 1 MB)
+└── .env.example
 ```
 
 ---
 
 ## Troubleshooting
 
-**Nothing is pasted**
-- Check `logs/voice2cursor.log` — look for `BLOCKED` or `Paste failed` entries
-- Make sure the target window is in focus when you send the message
-- Verify `ALLOWED_CHAT_ID` matches your actual chat ID
+**Nothing is pasted** — check `logs/voice2cursor.log` for `BLOCKED` or `Paste failed` entries. Make sure the target window is in focus when you send the message.
 
-**Tray icon is gray**
-- No network connectivity to Telegram API
-- The bot reconnects automatically with exponential backoff
+**Tray icon is gray** — no network. The bot reconnects automatically with exponential backoff.
 
-**Bot doesn't start**
-- Confirm `BOT_TOKEN` is correct in `.env`
-- Run `python main.py` manually to see startup errors in the console
-
-**Auto-start registration fails**
-- Make sure you're running as your normal user (not elevated/admin)
-- Check that `pythonw.exe` exists in your Python installation directory
+**Bot doesn't start** — confirm `BOT_TOKEN` in `.env` is correct. Run `python main.py` manually to see errors.
 
 ---
 
@@ -176,16 +119,108 @@ Voice2Cursor/
 
 ### v1.0.0 — 2026-05-15
 - Initial release
-- Telegram long-polling bot with single-user whitelist
+- Telegram long-polling with single-user whitelist
 - Clipboard injection via Ctrl+V into the active window
-- Blocked-window safety list (terminals, password managers, etc.)
-- System tray icon with green/gray status indicator
+- Blocked-window safety list
+- System tray status icon
 - PyInstaller EXE build (`build.bat`)
-- Auto-start via Task Scheduler / Startup folder (`setup_task_scheduler.py`)
-- Rotating log files
+- Auto-start via Task Scheduler / Startup folder
 
 ---
 
 ## License
 
 MIT — see [LICENSE](LICENSE)
+
+---
+---
+
+# Voice2Cursor — עברית
+
+כלי Windows שמאזין להודעות טלגרם ומדביק את הטקסט אוטומטית לחלון הפעיל. שלח הודעת קול או טקסט מהטלפון — הוא מופיע ישירות בסמן.
+
+---
+
+## איך זה עובד
+
+```
+[מיקרופון] → הודעת קול בטלגרם → תמלול → Telegram Bot API
+                                                    ↓
+                                     Voice2Cursor (שירות רקע של Windows)
+                                                    ↓
+                                     לוח גזירים → Ctrl+V → החלון הפעיל
+```
+
+---
+
+## יכולות
+
+- **כל אפליקציה** — מדביק ל-VS Code, Word, Notepad, דפדפנים, צ'אט, כל דבר שמקבל Ctrl+V
+- **תמלול קול** — עובד עם תמלול הקול המובנה של טלגרם
+- **משתמש מורשה בלבד** — רק ה-chat ID שהגדרת יכול להפעיל הדבקה
+- **הדבקה בטוחה** — חסום אוטומטית בטרמינלים, מנהלי סיסמאות ועוד
+- **הגנת הודעות ישנות** — מתעלם מהודעות ישנות מ-30 שניות
+- **אייקון במגש המערכת** — ירוק = פעיל, אפור = שגיאת רשת; לחיצה ימנית ליציאה
+- **קובץ EXE** — ניתן להפצה ללא Python
+- **הפעלה אוטומטית** — עולה עם Windows, ללא הרשאות מנהל
+
+---
+
+## הגדרה
+
+### שלב 1 — הגדרת .env
+
+```bash
+copy .env.example .env
+```
+
+ערוך את `.env`:
+
+```ini
+BOT_TOKEN=הטוקן_שלך
+ALLOWED_CHAT_ID=ה_chat_id_שלך
+```
+
+**איך להשיג את הערכים:**
+- **BOT_TOKEN** — פתח טלגרם → חפש [@BotFather](https://t.me/BotFather) → `/newbot`
+- **ALLOWED_CHAT_ID** — שלח הודעה לבוט שלך, פתח בדפדפן `https://api.telegram.org/bot<TOKEN>/getUpdates` והעתק את `result[0].message.chat.id`
+
+### שלב 2 — בנייה
+
+```bat
+build.bat
+```
+
+הסקריפט מתקין תלויות, בונה EXE, מעתיק `.env` אוטומטית — הכל בלחיצה אחת.
+
+### שלב 3 — הפעלה אוטומטית עם Windows
+
+```bash
+python setup_task_scheduler.py
+```
+
+מנסה Task Scheduler (עם עיכוב של 30 שניות אחרי כניסה). אם נדרשות הרשאות מנהל — עובר אוטומטית לתיקיית Startup. **לא נדרשות הרשאות מנהל**.
+
+```bash
+python setup_task_scheduler.py --remove   # הסרה
+```
+
+---
+
+## אבטחה
+
+| מנגנון | פירוט |
+|--------|-------|
+| רשימת מורשים | רק `ALLOWED_CHAT_ID` שהגדרת יכול להפעיל הדבקה |
+| חלונות חסומים | טרמינלים, KeePass, Bitwarden, 1Password, LastPass, עורך רישום, מנהל משימות |
+| הגנת הודעות ישנות | הודעות ישנות מ-30 שניות נזרקות |
+
+---
+
+## פתרון בעיות
+
+**לא מדביק** — בדוק `logs\voice2cursor.log` ל-`BLOCKED` או `Paste failed`. ודא שהחלון היעד בפוקוס בזמן שליחת ההודעה.
+
+**האייקון אפור** — אין רשת. הבוט מתחבר מחדש אוטומטית.
+
+**הבוט לא עולה** — ודא ש-`BOT_TOKEN` ב-`.env` נכון.
