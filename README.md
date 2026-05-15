@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.1-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.2-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -116,6 +116,9 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.2 — 2026-05-15
+- Tray icon tooltip now shows version number (e.g. "Voice2Cursor v1.0.2 — פעיל")
 
 ### v1.0.1 — 2026-05-15
 - Reduced `MAX_RETRY_DELAY` from 60 s to 15 s — faster recovery after network errors

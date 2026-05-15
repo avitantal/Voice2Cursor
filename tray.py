@@ -1,6 +1,14 @@
+import sys
 import threading
+from pathlib import Path
 import pystray
 from PIL import Image, ImageDraw
+
+_base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+try:
+    VERSION = (_base / "VERSION").read_text().strip()
+except Exception:
+    VERSION = "?"
 
 def _make_icon(color: str) -> Image.Image:
     img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
@@ -18,9 +26,9 @@ def _build_tray(on_exit):
     _tray = pystray.Icon(
         "Voice2Cursor",
         ICON_GREEN,
-        "Voice2Cursor — פעיל",
+        f"Voice2Cursor v{VERSION} — פעיל",
         menu=pystray.Menu(
-            pystray.MenuItem("Voice2Cursor — פעיל", None, enabled=False),
+            pystray.MenuItem(f"Voice2Cursor v{VERSION} — פעיל", None, enabled=False),
             pystray.MenuItem("יציאה", lambda: on_exit()),
         ),
     )
@@ -38,7 +46,7 @@ def set_error():
 def set_ok():
     if _tray:
         _tray.icon = ICON_GREEN
-        _tray.title = "Voice2Cursor — פעיל"
+        _tray.title = f"Voice2Cursor v{VERSION} — פעיל"
 
 def stop():
     if _tray:
