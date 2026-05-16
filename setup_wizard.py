@@ -130,49 +130,93 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     except Exception:
         return False
 
+    BG      = "#1e1e2e"
+    CARD    = "#29283d"
+    FIELD   = "#222136"
+    BORDER  = "#3f3f5a"
+    ACCENT  = "#7c3aed"
+    ACCENT_HOVER = "#6d28d9"
+    SECONDARY = "#34324d"
+    SECONDARY_HOVER = "#413d62"
+    FG      = "#e8edf7"
+    MUTED   = "#9aa4b8"
+    RED     = "#f87171"
+    GREEN   = "#34d399"
+    YELLOW  = "#fbbf24"
+
     root = tk.Tk()
     root.title(title)
     root.resizable(False, False)
-    root.configure(bg="#1e1e2e")
+    root.configure(bg=BG)
 
     root.update_idletasks()
-    w, h = 480, 620
+    w, h = 500, 650
     x = (root.winfo_screenwidth()  - w) // 2
     y = (root.winfo_screenheight() - h) // 2
     root.geometry(f"{w}x{h}+{x}+{y}")
     root.lift()
     root.focus_force()
 
-    BG     = "#1e1e2e"
-    CARD   = "#2a2a3e"
-    ACCENT = "#7c3aed"
-    FG     = "#e2e8f0"
-    MUTED  = "#94a3b8"
-    RED    = "#f87171"
-    GREEN  = "#34d399"
-    YELLOW = "#f59e0b"
-
     style = ttk.Style()
     style.theme_use("clam")
-    style.configure("TEntry", fieldbackground=CARD, foreground=FG,
-                    bordercolor="#3f3f5a", relief="flat", padding=8)
-    style.map("TEntry", fieldbackground=[("focus", "#32324a")])
+    style.configure(
+        "TEntry",
+        fieldbackground=FIELD,
+        foreground=FG,
+        insertcolor=FG,
+        bordercolor=BORDER,
+        lightcolor=BORDER,
+        darkcolor=BORDER,
+        relief="flat",
+        padding=9,
+    )
+    style.map(
+        "TEntry",
+        fieldbackground=[("focus", "#282743")],
+        bordercolor=[("focus", ACCENT)],
+    )
 
     def label(parent, text, size=11, color=FG, anchor="w", **kw):
         return tk.Label(parent, text=text, bg=BG, fg=color,
                         font=("Segoe UI", size), anchor=anchor, **kw)
 
+    def _bind_button_hover(button, normal, hover):
+        button.configure(
+            activebackground=hover,
+            activeforeground=button.cget("fg"),
+            bd=0,
+            highlightthickness=0,
+        )
+        button.bind("<Enter>", lambda _event: button.config(bg=hover) if str(button.cget("state")) != "disabled" else None)
+        button.bind("<Leave>", lambda _event: button.config(bg=normal) if str(button.cget("state")) != "disabled" else None)
+
+    def _brand_mark(parent):
+        size = 40
+        mark = tk.Canvas(parent, width=size, height=size, bg=BG, highlightthickness=0, bd=0)
+        mark.create_oval(3, 3, 37, 37, fill=CARD, outline=BORDER, width=1)
+        mark.create_oval(7, 7, 33, 33, outline=ACCENT, width=2)
+        mark.create_rectangle(17, 10, 23, 24, fill=FG, outline="")
+        mark.create_oval(17, 8, 23, 14, fill=FG, outline="")
+        mark.create_arc(12, 15, 28, 31, start=205, extent=130, style="arc", outline=FG, width=2)
+        mark.create_line(20, 25, 20, 31, fill=FG, width=2)
+        return mark
+
     # Header
-    header = tk.Frame(root, bg=ACCENT, height=56)
+    header = tk.Frame(root, bg=BG, height=82)
     header.pack(fill="x")
-    tk.Label(header, text="⚙  Voice2Cursor", bg=ACCENT, fg="white",
-             font=("Segoe UI", 14, "bold"), anchor="w").pack(side="left", padx=16, pady=12)
+    header.pack_propagate(False)
+    header_inner = tk.Frame(header, bg=BG)
+    header_inner.pack(fill="both", expand=True, padx=30, pady=(18, 14))
+    _brand_mark(header_inner).pack(side="left", padx=(0, 12))
+    tk.Label(header_inner, text="Voice2Cursor", bg=BG, fg=FG,
+             font=("Segoe UI", 16, "bold"), anchor="w").pack(side="left", fill="x", expand=True)
+    tk.Frame(root, bg=ACCENT, height=2).pack(fill="x")
 
     # Body
-    body = tk.Frame(root, bg=BG, padx=28, pady=20)
+    body = tk.Frame(root, bg=BG, padx=30, pady=22)
     body.pack(fill="both", expand=True)
 
-    label(body, subtitle, size=12).pack(anchor="w", pady=(0, 4))
+    label(body, subtitle, size=11, color=MUTED).pack(anchor="w", pady=(0, 4))
 
     # Active bot indicator
     _active_name = ""
@@ -201,6 +245,8 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     toggle_btn = tk.Button(token_row, text="הצג", bg=CARD, fg=MUTED,
                            font=("Segoe UI", 9), relief="flat", cursor="hand2",
                            padx=8, command=_toggle_token)
+    toggle_btn.configure(bg=SECONDARY)
+    _bind_button_hover(toggle_btn, SECONDARY, SECONDARY_HOVER)
     toggle_btn.pack(side="right", padx=(6, 0), ipady=4)
 
     def _get_clipboard() -> str:
@@ -272,7 +318,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
 
     detect_status_var = tk.StringVar()
     detect_lbl = tk.Label(body, textvariable=detect_status_var, bg=BG, fg=MUTED,
-                          font=("Segoe UI", 9), anchor="w", wraplength=420)
+                          font=("Segoe UI", 9), anchor="w", wraplength=452)
 
     def do_detect():
         token = token_var.get().strip()
@@ -319,9 +365,10 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     _make_context_menu(chat_entry, chat_var, masked=False)
 
     detect_btn = tk.Button(chat_row, text="זהה אוטומטית", bg=ACCENT, fg="white",
-                           activebackground="#6d28d9", activeforeground="white",
+                           activebackground=ACCENT_HOVER, activeforeground="white",
                            font=("Segoe UI", 9, "bold"), relief="flat", cursor="hand2",
                            padx=10, command=do_detect)
+    _bind_button_hover(detect_btn, ACCENT, ACCENT_HOVER)
     detect_btn.pack(side="right", padx=(6, 0), ipady=4)
 
     # Show detect_lbl placeholder (hidden until first detect)
@@ -329,7 +376,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
 
     # Saved bots
     label(body, "🤖  בוטים שמורים", size=10, color=MUTED).pack(anchor="w", pady=(4, 4))
-    bots_container = tk.Frame(body, bg=CARD, padx=6, pady=6, highlightbackground="#3f3f5a",
+    bots_container = tk.Frame(body, bg=CARD, padx=8, pady=8, highlightbackground=BORDER,
                               highlightthickness=1)
     bots_container.pack(fill="x", pady=(0, 12))
 
@@ -377,14 +424,18 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
                     status_lbl.config(fg=MUTED)
                 return _delete
 
-            tk.Button(row, text="טען", bg=ACCENT, fg="white",
-                      activebackground="#6d28d9", activeforeground="white",
+            load_btn = tk.Button(row, text="טען", bg=ACCENT, fg="white",
+                      activebackground=ACCENT_HOVER, activeforeground="white",
                       font=("Segoe UI", 9), relief="flat", cursor="hand2",
-                      padx=8, command=_make_load()).pack(side="right", padx=(4, 0))
+                      padx=8, command=_make_load())
+            _bind_button_hover(load_btn, ACCENT, ACCENT_HOVER)
+            load_btn.pack(side="right", padx=(4, 0))
             del_btn = tk.Button(row, text="🗑", bg="#3f3f5a", fg=RED,
-                      activebackground="#52526f", activeforeground=RED,
+                      activebackground=SECONDARY_HOVER, activeforeground=RED,
                       font=("Segoe UI", 10), relief="flat", cursor="hand2",
                       padx=8, command=_make_delete())
+            del_btn.configure(bg=SECONDARY)
+            _bind_button_hover(del_btn, SECONDARY, SECONDARY_HOVER)
             if is_current:
                 del_btn.config(state="disabled", fg=MUTED, cursor="arrow")
             del_btn.pack(side="right", padx=(4, 0))
@@ -394,7 +445,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     # Status
     status_var = tk.StringVar()
     status_lbl = tk.Label(body, textvariable=status_var, bg=BG, fg=RED,
-                          font=("Segoe UI", 9), anchor="w", wraplength=420)
+                          font=("Segoe UI", 9), anchor="w", wraplength=452)
     status_lbl.pack(anchor="w", pady=(0, 12))
 
     # Buttons
@@ -428,10 +479,11 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
 
     btn = tk.Button(
         btn_frame, text=btn_label,
-        bg=ACCENT, fg="white", activebackground="#6d28d9", activeforeground="white",
+        bg=ACCENT, fg="white", activebackground=ACCENT_HOVER, activeforeground="white",
         font=("Segoe UI", 11, "bold"), relief="flat", cursor="hand2",
         padx=20, pady=8, command=on_save,
     )
+    _bind_button_hover(btn, ACCENT, ACCENT_HOVER)
     btn.pack(side="right")
 
     def _on_close():

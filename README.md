@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.12-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.13-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -129,6 +129,11 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.13 — 2026-05-17
+- `bot_store`: atomic writes (tempfile + `os.replace`) and a `bots.json.bak` snapshot on every successful write — prevents partial-write corruption from wiping the bot list
+- `bot_store`: on parse failure, fall back to `bots.json.bak`; if both are unreadable, refuse to `touch` / `remove` rather than silently overwriting an existing-but-unparseable file with a singleton (this was the path that could lose saved bots after a settings change)
+- `bot_store`: log every add / update / remove with the short token prefix and remaining count, so future "where did my bot go" questions have a clear audit trail in `voice2cursor.log`
 
 ### v1.0.12 — 2026-05-16
 - Settings window: shows the active bot's name (🟢 פעיל: …) at the top, so the saved-bots list has obvious context

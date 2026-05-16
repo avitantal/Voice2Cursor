@@ -4,7 +4,7 @@ import threading
 import traceback
 from pathlib import Path
 import pystray
-from PIL import Image, ImageDraw
+from PIL import Image, ImageColor, ImageDraw
 
 import bot_store
 
@@ -16,11 +16,37 @@ try:
 except Exception:
     VERSION = "?"
 
+def _mix(left: tuple[int, int, int], right: tuple[int, int, int], amount: float) -> tuple[int, int, int]:
+    return tuple(round(a + (b - a) * amount) for a, b in zip(left, right))
+
+
 def _make_icon(color: str) -> Image.Image:
-    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    size = 256
+    base = ImageColor.getrgb(color)
+    deep = _mix(base, (17, 18, 24), 0.42)
+    highlight = _mix(base, (255, 255, 255), 0.28)
+
+    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    draw.ellipse([4, 4, 60, 60], fill=color)
-    return img
+
+    draw.ellipse([22, 28, 238, 244], fill=(0, 0, 0, 74))
+    draw.ellipse([14, 14, 242, 242], fill=deep + (255,))
+    draw.ellipse([24, 20, 232, 228], fill=base + (255,))
+    draw.ellipse([42, 36, 214, 204], outline=highlight + (150,), width=8)
+    draw.arc([46, 48, 210, 214], 214, 326, fill=(255, 255, 255, 90), width=10)
+
+    # Microphone mark, kept chunky so it survives the tiny tray rendering.
+    draw.rounded_rectangle([92, 56, 136, 148], radius=22, fill=(255, 255, 255, 244))
+    draw.rounded_rectangle([106, 70, 122, 132], radius=8, fill=deep + (210,))
+    draw.arc([74, 96, 154, 180], 26, 154, fill=(255, 255, 255, 236), width=11)
+    draw.line([114, 150, 114, 180], fill=(255, 255, 255, 236), width=12)
+    draw.line([90, 180, 138, 180], fill=(255, 255, 255, 236), width=12)
+
+    cursor = [(148, 132), (218, 188), (184, 196), (202, 226), (180, 238), (162, 204), (134, 226)]
+    draw.line(cursor + [cursor[0]], fill=(255, 255, 255, 240), width=12, joint="curve")
+    draw.polygon(cursor, fill=(18, 24, 38, 238))
+
+    return img.resize((64, 64), Image.Resampling.LANCZOS)
 
 ICON_GREEN = _make_icon("#22c55e")
 ICON_GRAY  = _make_icon("#6b7280")
