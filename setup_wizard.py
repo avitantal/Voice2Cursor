@@ -126,7 +126,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
                  btn_label: str, on_close_without_save) -> bool:
     try:
         import tkinter as tk
-        from tkinter import ttk
+        from tkinter import ttk, messagebox
     except Exception:
         return False
 
@@ -172,7 +172,19 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     body = tk.Frame(root, bg=BG, padx=28, pady=20)
     body.pack(fill="both", expand=True)
 
-    label(body, subtitle, size=12).pack(anchor="w", pady=(0, 16))
+    label(body, subtitle, size=12).pack(anchor="w", pady=(0, 4))
+
+    # Active bot indicator
+    _active_name = ""
+    for _b in bot_store.load_bots():
+        if _b.get("token") == current_token:
+            _active_name = bot_store.display_label(_b)
+            break
+    if _active_name:
+        tk.Label(body, text=f"🟢  פעיל: {_active_name}", bg=BG, fg=GREEN,
+                 font=("Segoe UI", 10, "bold"), anchor="w").pack(anchor="w", pady=(0, 12))
+    else:
+        tk.Label(body, text="", bg=BG).pack(pady=(0, 8))
 
     # Bot Token
     label(body, "🔑  Bot Token", size=10, color=MUTED).pack(anchor="w")
@@ -350,11 +362,18 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
                     status_lbl.config(fg=GREEN)
                 return _load
 
-            def _make_delete(t=btoken, name=name):
+            def _make_delete(t=btoken, dname=name):
                 def _delete():
+                    if not messagebox.askyesno(
+                        "אישור מחיקה",
+                        f"להסיר את {dname} מרשימת הבוטים השמורים?\n\n"
+                        "(הנתונים בטלגרם לא מושפעים — אפשר להוסיף שוב דרך 'הגדרה ראשונה'.)",
+                        parent=root, icon="warning", default="no",
+                    ):
+                        return
                     bot_store.remove(t)
                     _refresh_bots_list()
-                    status_var.set(f"🗑  הוסר: {name}")
+                    status_var.set(f"🗑  הוסר: {dname}")
                     status_lbl.config(fg=MUTED)
                 return _delete
 
@@ -362,10 +381,13 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
                       activebackground="#6d28d9", activeforeground="white",
                       font=("Segoe UI", 9), relief="flat", cursor="hand2",
                       padx=8, command=_make_load()).pack(side="right", padx=(4, 0))
-            tk.Button(row, text="🗑", bg="#3f3f5a", fg=RED,
+            del_btn = tk.Button(row, text="🗑", bg="#3f3f5a", fg=RED,
                       activebackground="#52526f", activeforeground=RED,
                       font=("Segoe UI", 10), relief="flat", cursor="hand2",
-                      padx=8, command=_make_delete()).pack(side="right", padx=(4, 0))
+                      padx=8, command=_make_delete())
+            if is_current:
+                del_btn.config(state="disabled", fg=MUTED, cursor="arrow")
+            del_btn.pack(side="right", padx=(4, 0))
 
     _refresh_bots_list()
 
