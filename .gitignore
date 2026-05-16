@@ -39,3 +39,7 @@ releases/*/Voice2Cursor_v*.zip
 
 # Per-user runtime state — not part of the source tree
 bots.json
+bots.json.bak
+
+# Temp copies left if a build is interrupted between preserve and restore
+_preserved_*

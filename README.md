@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.13-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.15-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -129,6 +129,12 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.15 — 2026-05-17
+- `build.bat` / `build-fast.bat` now preserve `bots.json`, `bots.json.bak`, and `offset.txt` across PyInstaller rebuilds — PyInstaller removes `dist\Voice2Cursor\` during COLLECT (verified in log: `INFO: Removing dir ...\dist\Voice2Cursor`), so every rebuild used to wipe the EXE-side bot list. Build failure cleans up the temp copies.
+
+### v1.0.14 — 2026-05-17
+- Settings window: all section headers centered (top brand, subtitle, active-bot indicator, "Bot Token", "Chat ID שלך", "בוטים שמורים", BotFather hint). RTL/LTR mixing made left-anchored headers feel uneven; centering removes the directional choice.
 
 ### v1.0.13 — 2026-05-17
 - `bot_store`: atomic writes (tempfile + `os.replace`) and a `bots.json.bak` snapshot on every successful write — prevents partial-write corruption from wiping the bot list
