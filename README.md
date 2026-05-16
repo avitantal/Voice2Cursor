@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.9-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.10-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -28,7 +28,9 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 - **Authorized only** — single whitelist chat ID; all other senders are silently ignored
 - **Safe injection** — blocks paste into terminals, password managers, registry editors, and task manager
 - **Stale message protection** — discards messages older than 30 seconds (replay prevention)
-- **System tray** — green/gray dot shows live connection status; right-click to exit
+- **System tray** — green/gray dot shows live connection status, header line shows the bot username and version
+- **Multi-bot switching** — every bot you've used is remembered in `bots.json`; switch from the **🤖 בוטים** tray submenu in one click (writes `.env`, resets offset, restarts)
+- **Settings GUI** — first-run wizard + tray "⚙ הגדרות" (runs in its own subprocess to dodge tkinter/pystray threading issues)
 - **EXE build** — ships as a standalone executable, no Python required to run
 - **Auto-start** — registers to launch at Windows login, no admin rights required
 - **Rotating logs** — up to 3 × 1 MB log files under `logs/`
@@ -94,7 +96,9 @@ Voice2Cursor/
 ├── config.py                # Loads and validates .env settings
 ├── security.py              # Chat ID whitelist + blocked-window check
 ├── injector.py              # Clipboard write + Ctrl+V keystroke
-├── tray.py                  # System tray icon and menu
+├── tray.py                  # System tray icon + menu (incl. bots submenu)
+├── bot_store.py             # bots.json read/write — list of known bots
+├── setup_wizard.py          # First-run + settings GUI (tkinter)
 ├── setup_task_scheduler.py  # Registers / removes auto-start
 ├── Voice2Cursor.spec        # PyInstaller build spec
 ├── build.bat                # One-click build script
@@ -116,6 +120,14 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.10 — 2026-05-16  *(first fully-working build)*
+- Tray menu: new **🤖 בוטים** submenu listing every bot the app has been used with (radio-selected current bot, click to switch — writes `.env`, resets offset, restarts)
+- Bot list persisted to `bots.json` next to the EXE (token + chat_id + Telegram `@username` + last_used timestamp; menu is sorted most-recent-first)
+- Settings window: launches in a clean child process via `--settings` flag, fixing intermittent failures to open caused by tkinter running on the pystray callback thread
+- `setup_wizard._save` now registers the saved bot in `bots.json` automatically
+- Tray init: wrapped `pystray.run()` in try/except + logging so silent thread death is visible in the log; switched bots submenu to static construction (the earlier callable form prevented the tray icon from registering on Win32)
+- Startup log now includes "Telegram bot detected: …" on success, "Tray icon created — entering pystray run loop" once the icon is live
 
 ### v1.0.9 — 2026-05-15
 - Setup wizard: auto-detect Chat ID via Telegram `getUpdates` long-polling — user sends any message to the bot and the field fills automatically
@@ -196,7 +208,9 @@ MIT — see [LICENSE](LICENSE)
 - **משתמש מורשה בלבד** — רק ה-chat ID שהגדרת יכול להפעיל הדבקה
 - **הדבקה בטוחה** — חסום אוטומטית בטרמינלים, מנהלי סיסמאות ועוד
 - **הגנת הודעות ישנות** — מתעלם מהודעות ישנות מ-30 שניות
-- **אייקון במגש המערכת** — ירוק = פעיל, אפור = שגיאת רשת; לחיצה ימנית ליציאה
+- **אייקון במגש המערכת** — ירוק = פעיל, אפור = שגיאת רשת; כותרת התפריט מראה גרסה ושם בוט
+- **החלפת בוטים** — כל בוט שהשתמשת בו נשמר ב-`bots.json`; תת-תפריט **🤖 בוטים** בטריי מאפשר מעבר ביניהם בלחיצה אחת
+- **GUI הגדרות** — אשף ראשון + "⚙ הגדרות" בטריי (רץ בתת-תהליך נפרד למניעת קונפליקטים tkinter/pystray)
 - **קובץ EXE** — ניתן להפצה ללא Python
 - **הפעלה אוטומטית** — עולה עם Windows, ללא הרשאות מנהל
 

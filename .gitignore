@@ -26,3 +26,16 @@ build/
 
 # Temp files
 _task.xml
+
+# Local working dir (build/test/diagnostic scripts)
+.qa/
+
+# Distribution zips (live in releases/ for backup; loose zips at root are transient)
+Voice2Cursor_v*.zip
+
+# Archived release binaries — preserved locally only, never committed
+releases/*/Voice2Cursor.exe
+releases/*/Voice2Cursor_v*.zip
+
+# Per-user runtime state — not part of the source tree
+bots.json

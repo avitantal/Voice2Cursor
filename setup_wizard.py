@@ -4,8 +4,6 @@ Asks for BOT_TOKEN, detects ALLOWED_CHAT_ID automatically via getUpdates, saves 
 """
 import sys
 import os
-import tkinter as tk
-from tkinter import ttk
 from pathlib import Path
 import requests
 import threading
@@ -70,6 +68,11 @@ def _save(token: str, chat_id: str):
     ENV_PATH.write_text(f"BOT_TOKEN={token.strip()}\nALLOWED_CHAT_ID={chat_id.strip()}\n", encoding="utf-8")
     offset_file = _base_dir() / "offset.txt"
     offset_file.write_text("0", encoding="utf-8")
+    try:
+        import bot_store
+        bot_store.touch(token, chat_id)
+    except Exception:
+        pass
 
 
 def _fetch_chat_id(token: str, on_found, on_error, on_timeout, cancel_flag: list):
@@ -119,6 +122,12 @@ def _fetch_chat_id(token: str, on_found, on_error, on_timeout, cancel_flag: list
 
 def _open_window(title: str, subtitle: str, current_token: str, current_chat: str,
                  btn_label: str, on_close_without_save) -> bool:
+    try:
+        import tkinter as tk
+        from tkinter import ttk
+    except Exception:
+        return False
+
     root = tk.Tk()
     root.title(title)
     root.resizable(False, False)
