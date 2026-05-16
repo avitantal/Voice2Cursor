@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.10-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.12-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -30,6 +30,8 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 - **Stale message protection** — discards messages older than 30 seconds (replay prevention)
 - **System tray** — green/gray dot shows live connection status, header line shows the bot username and version
 - **Multi-bot switching** — every bot you've used is remembered in `bots.json`; switch from the **🤖 בוטים** tray submenu in one click (writes `.env`, resets offset, restarts)
+- **Saved-bots management** — settings window lists all saved bots with **Load** / **🗑** controls and highlights the active one; delete is confirmed and disabled for the active bot
+- **Manual reconnect** — when the tray icon turns gray (network error), a **🔄 התחבר מחדש** item appears in the menu to restart the connection immediately
 - **Settings GUI** — first-run wizard + tray "⚙ הגדרות" (runs in its own subprocess to dodge tkinter/pystray threading issues)
 - **EXE build** — ships as a standalone executable, no Python required to run
 - **Auto-start** — registers to launch at Windows login, no admin rights required
@@ -63,6 +65,12 @@ build.bat
 ```
 
 That's it. The script installs all dependencies, builds the EXE, copies `.env` automatically, and tells you how to register auto-start.
+
+For repeat builds between version bumps, use the fast variant — skips `pip install` and the PyInstaller `--clean` step, using the cached build artifacts:
+
+```bat
+build-fast.bat
+```
 
 ### 3. Register auto-start
 
@@ -101,7 +109,8 @@ Voice2Cursor/
 ├── setup_wizard.py          # First-run + settings GUI (tkinter)
 ├── setup_task_scheduler.py  # Registers / removes auto-start
 ├── Voice2Cursor.spec        # PyInstaller build spec
-├── build.bat                # One-click build script
+├── build.bat                # Full build (installs deps + clean PyInstaller run)
+├── build-fast.bat           # Fast incremental rebuild (skips pip + --clean)
 ├── VERSION                  # Current version number
 ├── requirements.txt
 └── .env.example
@@ -120,6 +129,16 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.12 — 2026-05-16
+- Settings window: shows the active bot's name (🟢 פעיל: …) at the top, so the saved-bots list has obvious context
+- Saved-bots delete: confirmation dialog before removing — the RTL row layout made the 🗑 button easy to hit by accident
+- Saved-bots delete: 🗑 is disabled for the currently-active bot (deleting it is meaningless — `main.py` re-adds it on next startup via `bot_store.touch`)
+- Added `build-fast.bat` — skips `pip install` and `--clean` for quick rebuilds between version bumps
+
+### v1.0.11 — 2026-05-16
+- Settings window: new **🤖 בוטים שמורים** section listing every saved bot with **טען** (load into fields) and **🗑** (delete) controls — covers the gaps the tray submenu left
+- Tray menu: new **🔄 התחבר מחדש** item, shown only while status is "שגיאה" — restarts the process to drop any stuck network state
 
 ### v1.0.10 — 2026-05-16  *(first fully-working build)*
 - Tray menu: new **🤖 בוטים** submenu listing every bot the app has been used with (radio-selected current bot, click to switch — writes `.env`, resets offset, restarts)
@@ -210,6 +229,8 @@ MIT — see [LICENSE](LICENSE)
 - **הגנת הודעות ישנות** — מתעלם מהודעות ישנות מ-30 שניות
 - **אייקון במגש המערכת** — ירוק = פעיל, אפור = שגיאת רשת; כותרת התפריט מראה גרסה ושם בוט
 - **החלפת בוטים** — כל בוט שהשתמשת בו נשמר ב-`bots.json`; תת-תפריט **🤖 בוטים** בטריי מאפשר מעבר ביניהם בלחיצה אחת
+- **ניהול בוטים שמורים** — במסך ההגדרות מופיעה רשימת הבוטים השמורים עם **טען** / **🗑** והבוט הפעיל מודגש; מחיקה כוללת אישור ומנוטרלת לבוט הפעיל
+- **רענון ידני** — כשהאייקון אפור (שגיאת רשת), פריט **🔄 התחבר מחדש** מופיע בתפריט הטריי ומפעיל מחדש את החיבור
 - **GUI הגדרות** — אשף ראשון + "⚙ הגדרות" בטריי (רץ בתת-תהליך נפרד למניעת קונפליקטים tkinter/pystray)
 - **קובץ EXE** — ניתן להפצה ללא Python
 - **הפעלה אוטומטית** — עולה עם Windows, ללא הרשאות מנהל
@@ -242,6 +263,12 @@ build.bat
 ```
 
 הסקריפט מתקין תלויות, בונה EXE, מעתיק `.env` אוטומטית — הכל בלחיצה אחת.
+
+לבילד מהיר בין גרסאות (ללא `pip install` וללא `--clean`, שימוש ב-cache של PyInstaller):
+
+```bat
+build-fast.bat
+```
 
 ### שלב 3 — הפעלה אוטומטית עם Windows
 
