@@ -120,6 +120,11 @@ def on_settings():
             _restart_self()
     threading.Thread(target=_run, daemon=True).start()
 
+def on_reconnect():
+    """Manual reconnect from tray menu — restart the process to drop any stuck state."""
+    logger.info("Manual reconnect requested from tray")
+    threading.Thread(target=_restart_self, daemon=True).start()
+
 def on_switch_bot(token: str, chat_id: str):
     """Switch active bot from the tray submenu: write .env, restart self."""
     def _run():
@@ -174,6 +179,7 @@ def main():
         logger.warning("Telegram bot name unavailable at startup; will retry after connection")
 
     tray.set_on_switch_bot(on_switch_bot)
+    tray.set_on_reconnect(on_reconnect)
     tray.start(on_exit, on_settings, bot_name=_current_bot_name, current_token=BOT_TOKEN)
 
     offset = load_offset()

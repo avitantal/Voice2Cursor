@@ -33,6 +33,7 @@ _current_token: str = ""
 _on_exit = None
 _on_settings = None
 _on_switch_bot = None  # callable(token: str, chat_id: str)
+_on_reconnect = None   # callable() — only used while in error state
 
 def is_auto_enter() -> bool:
     return _auto_enter
@@ -84,6 +85,11 @@ def _build_menu():
             ))
         items.append(pystray.MenuItem("🤖 בוטים", pystray.Menu(*bot_items)))
     items.extend([
+        pystray.MenuItem(
+            "🔄 התחבר מחדש",
+            lambda: _on_reconnect() if _on_reconnect else None,
+            visible=lambda item: _status == "שגיאה",
+        ),
         pystray.MenuItem("⚙ הגדרות", lambda: _on_settings() if _on_settings else None),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("יציאה", lambda: _on_exit() if _on_exit else None),
@@ -122,6 +128,10 @@ def set_current_token(token: str):
 def set_on_switch_bot(callback):
     global _on_switch_bot
     _on_switch_bot = callback
+
+def set_on_reconnect(callback):
+    global _on_reconnect
+    _on_reconnect = callback
 
 def set_error():
     global _status

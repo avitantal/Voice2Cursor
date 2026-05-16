@@ -9,6 +9,8 @@ import requests
 import threading
 import subprocess
 
+import bot_store
+
 def _base_dir() -> Path:
     return Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 
@@ -134,7 +136,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     root.configure(bg="#1e1e2e")
 
     root.update_idletasks()
-    w, h = 480, 460
+    w, h = 480, 620
     x = (root.winfo_screenwidth()  - w) // 2
     y = (root.winfo_screenheight() - h) // 2
     root.geometry(f"{w}x{h}+{x}+{y}")
@@ -312,6 +314,60 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
 
     # Show detect_lbl placeholder (hidden until first detect)
     detect_lbl.pack(anchor="w", pady=(4, 8))
+
+    # Saved bots
+    label(body, "🤖  בוטים שמורים", size=10, color=MUTED).pack(anchor="w", pady=(4, 4))
+    bots_container = tk.Frame(body, bg=CARD, padx=6, pady=6, highlightbackground="#3f3f5a",
+                              highlightthickness=1)
+    bots_container.pack(fill="x", pady=(0, 12))
+
+    def _refresh_bots_list():
+        for child in bots_container.winfo_children():
+            child.destroy()
+        bots = bot_store.load_bots()
+        if not bots:
+            tk.Label(bots_container, text="אין בוטים שמורים עדיין.", bg=CARD, fg=MUTED,
+                     font=("Segoe UI", 9), anchor="w").pack(fill="x", padx=4, pady=4)
+            return
+        for bot in bots:
+            row = tk.Frame(bots_container, bg=CARD)
+            row.pack(fill="x", pady=2)
+            btoken = bot.get("token", "")
+            bchat  = bot.get("chat_id", "")
+            is_current = (btoken == current_token)
+            name = bot_store.display_label(bot)
+            prefix = "● " if is_current else "  "
+            tk.Label(row, text=f"{prefix}{name}", bg=CARD,
+                     fg=GREEN if is_current else FG,
+                     font=("Segoe UI", 10, "bold" if is_current else "normal"),
+                     anchor="w").pack(side="left", fill="x", expand=True, padx=4)
+
+            def _make_load(t=btoken, c=bchat):
+                def _load():
+                    token_var.set(t)
+                    chat_var.set(c)
+                    status_var.set("✓  נטען — לחץ 'שמור' להחלפה.")
+                    status_lbl.config(fg=GREEN)
+                return _load
+
+            def _make_delete(t=btoken, name=name):
+                def _delete():
+                    bot_store.remove(t)
+                    _refresh_bots_list()
+                    status_var.set(f"🗑  הוסר: {name}")
+                    status_lbl.config(fg=MUTED)
+                return _delete
+
+            tk.Button(row, text="טען", bg=ACCENT, fg="white",
+                      activebackground="#6d28d9", activeforeground="white",
+                      font=("Segoe UI", 9), relief="flat", cursor="hand2",
+                      padx=8, command=_make_load()).pack(side="right", padx=(4, 0))
+            tk.Button(row, text="🗑", bg="#3f3f5a", fg=RED,
+                      activebackground="#52526f", activeforeground=RED,
+                      font=("Segoe UI", 10), relief="flat", cursor="hand2",
+                      padx=8, command=_make_delete()).pack(side="right", padx=(4, 0))
+
+    _refresh_bots_list()
 
     # Status
     status_var = tk.StringVar()
