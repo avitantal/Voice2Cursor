@@ -206,17 +206,17 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     header.pack(fill="x")
     header.pack_propagate(False)
     header_inner = tk.Frame(header, bg=BG)
-    header_inner.pack(fill="both", expand=True, padx=30, pady=(18, 14))
+    header_inner.pack(expand=True, padx=30, pady=(18, 14))
     _brand_mark(header_inner).pack(side="left", padx=(0, 12))
     tk.Label(header_inner, text="Voice2Cursor", bg=BG, fg=FG,
-             font=("Segoe UI", 16, "bold"), anchor="w").pack(side="left", fill="x", expand=True)
+             font=("Segoe UI", 16, "bold")).pack(side="left")
     tk.Frame(root, bg=ACCENT, height=2).pack(fill="x")
 
     # Body
     body = tk.Frame(root, bg=BG, padx=30, pady=22)
     body.pack(fill="both", expand=True)
 
-    label(body, subtitle, size=11, color=MUTED).pack(anchor="w", pady=(0, 4))
+    label(body, subtitle, size=11, color=MUTED, anchor="center").pack(fill="x", pady=(0, 4))
 
     # Active bot indicator
     _active_name = ""
@@ -226,12 +226,12 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
             break
     if _active_name:
         tk.Label(body, text=f"🟢  פעיל: {_active_name}", bg=BG, fg=GREEN,
-                 font=("Segoe UI", 10, "bold"), anchor="w").pack(anchor="w", pady=(0, 12))
+                 font=("Segoe UI", 10, "bold"), anchor="center").pack(fill="x", pady=(0, 12))
     else:
         tk.Label(body, text="", bg=BG).pack(pady=(0, 8))
 
     # Bot Token
-    label(body, "🔑  Bot Token", size=10, color=MUTED).pack(anchor="w")
+    label(body, "🔑  Bot Token", size=10, color=MUTED, anchor="center").pack(fill="x")
     token_var = tk.StringVar(value=current_token)
     token_row = tk.Frame(body, bg=BG)
     token_row.pack(fill="x", pady=(2, 2))
@@ -304,10 +304,10 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
 
     _make_context_menu(token_entry, token_var, masked=True)
 
-    label(body, "  קבל מ-@BotFather  →  /newbot", size=9, color=MUTED).pack(anchor="w", pady=(0, 14))
+    label(body, "קבל מ-@BotFather  →  /newbot", size=9, color=MUTED, anchor="center").pack(fill="x", pady=(0, 14))
 
     # Chat ID
-    label(body, "🆔  Chat ID שלך", size=10, color=MUTED).pack(anchor="w")
+    label(body, "🆔  Chat ID שלך", size=10, color=MUTED, anchor="center").pack(fill="x")
     chat_var = tk.StringVar(value=current_chat)
     chat_row = tk.Frame(body, bg=BG)
     chat_row.pack(fill="x", pady=(2, 2))
@@ -375,7 +375,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     detect_lbl.pack(anchor="w", pady=(4, 8))
 
     # Saved bots
-    label(body, "🤖  בוטים שמורים", size=10, color=MUTED).pack(anchor="w", pady=(4, 4))
+    label(body, "🤖  בוטים שמורים", size=10, color=MUTED, anchor="center").pack(fill="x", pady=(4, 4))
     bots_container = tk.Frame(body, bg=CARD, padx=8, pady=8, highlightbackground=BORDER,
                               highlightthickness=1)
     bots_container.pack(fill="x", pady=(0, 12))
