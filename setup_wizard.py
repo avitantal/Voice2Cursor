@@ -198,15 +198,16 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
         button.bind("<Leave>", lambda _event: button.config(bg=normal) if str(button.cget("state")) != "disabled" else None)
 
     def _brand_mark(parent):
-        size = 40
-        mark = tk.Canvas(parent, width=size, height=size, bg=BG, highlightthickness=0, bd=0)
-        mark.create_oval(3, 3, 37, 37, fill=CARD, outline=BORDER, width=1)
-        mark.create_oval(7, 7, 33, 33, outline=ACCENT, width=2)
-        mark.create_rectangle(17, 10, 23, 24, fill=FG, outline="")
-        mark.create_oval(17, 8, 23, 14, fill=FG, outline="")
-        mark.create_arc(12, 15, 28, 31, start=205, extent=130, style="arc", outline=FG, width=2)
-        mark.create_line(20, 25, 20, 31, fill=FG, width=2)
-        return mark
+        try:
+            from PIL import Image, ImageTk
+
+            img = Image.open(app_icon_png()).convert("RGBA").resize((48, 48), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(img)
+            mark = tk.Label(parent, image=photo, bg=BG, bd=0, highlightthickness=0)
+            mark.image = photo
+            return mark
+        except Exception:
+            return tk.Frame(parent, width=0, height=48, bg=BG)
 
     # Header
     header = tk.Frame(root, bg=BG, height=82)
@@ -214,7 +215,7 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     header.pack_propagate(False)
     header_inner = tk.Frame(header, bg=BG)
     header_inner.pack(expand=True, padx=30, pady=(18, 14))
-    _brand_mark(header_inner).pack(side="left", padx=(0, 12))
+    _brand_mark(header_inner).pack(side="left", padx=(0, 10))
     tk.Label(header_inner, text="Voice2Cursor", bg=BG, fg=FG,
              font=("Segoe UI", 16, "bold")).pack(side="left")
     tk.Frame(root, bg=ACCENT, height=2).pack(fill="x")

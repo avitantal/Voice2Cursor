@@ -2,7 +2,7 @@
 
 Dictate into any Windows app via Telegram — send a voice message or text, and it appears at your cursor instantly.
 
-[![Version](https://img.shields.io/badge/version-v1.0.16-brightgreen.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-v1.0.17-brightgreen.svg)](VERSION)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg)](https://www.microsoft.com/windows)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -132,6 +132,9 @@ Voice2Cursor/
 ---
 
 ## Changelog
+
+### v1.0.17 — 2026-05-17
+- Replaced the hand-drawn settings header mark with the generated app icon, so the settings screen matches the EXE and tray branding.
 
 ### v1.0.16 — 2026-05-17
 - App icon is now loaded at runtime too: the system tray uses the generated icon with a small status dot, and the settings window title bar uses the bundled `.ico` / PNG.
