@@ -23,6 +23,7 @@ exe = EXE(
     a.datas,
     [],
     name='Voice2Cursor_debug',
+    icon='assets\\voice2cursor-icon.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

@@ -29,6 +29,7 @@ Dictate into any Windows app via Telegram — send a voice message or text, and 
 - **Safe injection** — blocks paste into terminals, password managers, registry editors, and task manager
 - **Stale message protection** — discards messages older than 30 seconds (replay prevention)
 - **System tray** — green/gray dot shows live connection status, header line shows the bot username and version
+- **Polished app icon** — bundled Windows `.ico` and source PNG under `assets/`, used by PyInstaller for the EXE
 - **Multi-bot switching** — every bot you've used is remembered in `bots.json`; switch from the **🤖 בוטים** tray submenu in one click (writes `.env`, resets offset, restarts)
 - **Saved-bots management** — settings window lists all saved bots with **Load** / **🗑** controls and highlights the active one; delete is confirmed and disabled for the active bot
 - **Manual reconnect** — when the tray icon turns gray (network error), a **🔄 התחבר מחדש** item appears in the menu to restart the connection immediately
@@ -100,6 +101,7 @@ python setup_task_scheduler.py --remove   # unregister
 
 ```
 Voice2Cursor/
+├── assets/                  # App icon source PNG + Windows ICO
 ├── main.py                  # Bot loop — polls Telegram, dispatches messages
 ├── config.py                # Loads and validates .env settings
 ├── security.py              # Chat ID whitelist + blocked-window check
@@ -132,6 +134,7 @@ Voice2Cursor/
 
 ### v1.0.15 — 2026-05-17
 - `build.bat` / `build-fast.bat` now preserve `bots.json`, `bots.json.bak`, and `offset.txt` across PyInstaller rebuilds — PyInstaller removes `dist\Voice2Cursor\` during COLLECT (verified in log: `INFO: Removing dir ...\dist\Voice2Cursor`), so every rebuild used to wipe the EXE-side bot list. Build failure cleans up the temp copies.
+- Added the generated Voice2Cursor app icon (`assets/voice2cursor-icon.png` + `.ico`) and wired it into both PyInstaller specs so the rebuilt EXE carries the branded icon.
 
 ### v1.0.14 — 2026-05-17
 - Settings window: all section headers centered (top brand, subtitle, active-bot indicator, "Bot Token", "Chat ID שלך", "בוטים שמורים", BotFather hint). RTL/LTR mixing made left-anchored headers feel uneven; centering removes the directional choice.

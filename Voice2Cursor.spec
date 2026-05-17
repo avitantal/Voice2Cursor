@@ -30,6 +30,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name='Voice2Cursor',
+    icon='assets\\voice2cursor-icon.ico',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
