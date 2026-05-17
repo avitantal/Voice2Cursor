@@ -4,7 +4,10 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        ('assets\\voice2cursor-icon.png', 'assets'),
+        ('assets\\voice2cursor-icon.ico', 'assets'),
+    ],
     hiddenimports=[
         'win32gui',
         'win32api',

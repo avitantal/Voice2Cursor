@@ -9,10 +9,11 @@ import requests
 import threading
 import subprocess
 
+from app_assets import app_base_dir, app_icon_ico, app_icon_png
 import bot_store
 
 def _base_dir() -> Path:
-    return Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+    return app_base_dir()
 
 ENV_PATH = _base_dir() / ".env"
 
@@ -148,6 +149,12 @@ def _open_window(title: str, subtitle: str, current_token: str, current_chat: st
     root.title(title)
     root.resizable(False, False)
     root.configure(bg=BG)
+    try:
+        root.iconbitmap(str(app_icon_ico()))
+        root._app_icon_photo = tk.PhotoImage(file=str(app_icon_png()))
+        root.iconphoto(True, root._app_icon_photo)
+    except Exception:
+        pass
 
     root.update_idletasks()
     w, h = 500, 650

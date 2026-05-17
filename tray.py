@@ -1,55 +1,47 @@
-import sys
 import logging
 import threading
 import traceback
-from pathlib import Path
 import pystray
-from PIL import Image, ImageColor, ImageDraw
+from PIL import Image, ImageDraw, ImageEnhance, ImageOps
 
+from app_assets import app_base_dir, app_icon_png
 import bot_store
 
 logger = logging.getLogger(__name__)
 
-_base = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+_base = app_base_dir()
 try:
     VERSION = (_base / "VERSION").read_text().strip()
 except Exception:
     VERSION = "?"
 
-def _mix(left: tuple[int, int, int], right: tuple[int, int, int], amount: float) -> tuple[int, int, int]:
-    return tuple(round(a + (b - a) * amount) for a, b in zip(left, right))
+
+def _load_icon() -> Image.Image:
+    try:
+        return Image.open(app_icon_png()).convert("RGBA").resize((64, 64), Image.Resampling.LANCZOS)
+    except Exception:
+        logger.warning("Could not load app icon asset; using a simple fallback icon", exc_info=True)
+        return Image.new("RGBA", (64, 64), (14, 165, 233, 255))
 
 
-def _make_icon(color: str) -> Image.Image:
-    size = 256
-    base = ImageColor.getrgb(color)
-    deep = _mix(base, (17, 18, 24), 0.42)
-    highlight = _mix(base, (255, 255, 255), 0.28)
+def _disabled_icon(icon: Image.Image) -> Image.Image:
+    alpha = icon.getchannel("A")
+    gray = ImageOps.grayscale(icon).convert("RGBA")
+    gray.putalpha(alpha)
+    return ImageEnhance.Brightness(gray).enhance(0.62)
 
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+
+def _with_status_dot(icon: Image.Image, color: str) -> Image.Image:
+    img = icon.copy()
     draw = ImageDraw.Draw(img)
+    draw.ellipse([44, 44, 63, 63], fill=(10, 12, 18, 230))
+    draw.ellipse([48, 48, 60, 60], fill=color)
+    return img
 
-    draw.ellipse([22, 28, 238, 244], fill=(0, 0, 0, 74))
-    draw.ellipse([14, 14, 242, 242], fill=deep + (255,))
-    draw.ellipse([24, 20, 232, 228], fill=base + (255,))
-    draw.ellipse([42, 36, 214, 204], outline=highlight + (150,), width=8)
-    draw.arc([46, 48, 210, 214], 214, 326, fill=(255, 255, 255, 90), width=10)
 
-    # Microphone mark, kept chunky so it survives the tiny tray rendering.
-    draw.rounded_rectangle([92, 56, 136, 148], radius=22, fill=(255, 255, 255, 244))
-    draw.rounded_rectangle([106, 70, 122, 132], radius=8, fill=deep + (210,))
-    draw.arc([74, 96, 154, 180], 26, 154, fill=(255, 255, 255, 236), width=11)
-    draw.line([114, 150, 114, 180], fill=(255, 255, 255, 236), width=12)
-    draw.line([90, 180, 138, 180], fill=(255, 255, 255, 236), width=12)
-
-    cursor = [(148, 132), (218, 188), (184, 196), (202, 226), (180, 238), (162, 204), (134, 226)]
-    draw.line(cursor + [cursor[0]], fill=(255, 255, 255, 240), width=12, joint="curve")
-    draw.polygon(cursor, fill=(18, 24, 38, 238))
-
-    return img.resize((64, 64), Image.Resampling.LANCZOS)
-
-ICON_GREEN = _make_icon("#22c55e")
-ICON_GRAY  = _make_icon("#6b7280")
+_BASE_ICON = _load_icon()
+ICON_OK = _with_status_dot(_BASE_ICON, "#22c55e")
+ICON_ERROR = _with_status_dot(_disabled_icon(_BASE_ICON), "#6b7280")
 
 _tray: pystray.Icon | None = None
 _auto_enter: bool = False
@@ -125,7 +117,7 @@ def _build_menu():
 def _build_tray():
     global _tray
     try:
-        _tray = pystray.Icon("Voice2Cursor", ICON_GREEN, _title(), menu=_build_menu())
+        _tray = pystray.Icon("Voice2Cursor", ICON_OK, _title(), menu=_build_menu())
         logger.info("Tray icon created — entering pystray run loop")
         _tray.run()
         logger.info("pystray run loop exited normally")
@@ -163,14 +155,14 @@ def set_error():
     global _status
     _status = "שגיאה"
     if _tray:
-        _tray.icon = ICON_GRAY
+        _tray.icon = ICON_ERROR
         _tray.title = _title()
 
 def set_ok():
     global _status
     _status = "פעיל"
     if _tray:
-        _tray.icon = ICON_GREEN
+        _tray.icon = ICON_OK
         _tray.title = _title()
 
 def stop():
